@@ -35,6 +35,48 @@ const chatService = {
             };
         }
     },
+
+    createChat: async (body) => {
+        try {
+            const check = firestore.collection(body.id);
+            const snapshot = await check.get();
+
+            let name;
+
+            if (snapshot.empty) {
+                console.log('empty');
+
+                name = '1';
+            } else {
+                const lastDocument = snapshot.docs[snapshot.docs.length - 1].id;
+                const lastDocumentNumber = parseInt(lastDocument);
+                name = (lastDocumentNumber + 1).toString();
+            }
+
+            // 문서 추가
+            await check.doc(name).set({
+                chat: [],
+                update_at: new Date(Date.now()),
+            });
+
+            return {
+                timestamp: new Date(Date.now()),
+                result: true,
+                status: 200,
+                message: 'Success',
+                data: null,
+            };
+        } catch (error) {
+            console.log(error);
+            return {
+                timestamp: new Date(Date.now()),
+                result: false,
+                status: 400,
+                message: error,
+                data: null,
+            };
+        }
+    },
 };
 
 export default chatService;
