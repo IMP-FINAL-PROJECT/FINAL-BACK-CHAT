@@ -5,4 +5,6 @@ const chatRouter = express.Router();
 
 chatRouter.get('/list', chatController.getChatList);
 
+chatRouter.post('/delete', chatController.deleteChat);
+
 export default chatRouter;
