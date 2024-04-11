@@ -7,4 +7,6 @@ chatRouter.get('/list', chatController.getChatList);
 
 chatRouter.post('/create', chatController.createChat);
 
+chatRouter.post('/delete', chatController.deleteChat);
+
 export default chatRouter;
