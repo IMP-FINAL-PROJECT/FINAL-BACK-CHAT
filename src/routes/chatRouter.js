@@ -11,4 +11,6 @@ chatRouter.post('/delete', chatController.deleteChat);
 
 chatRouter.post('/question', chatController.question);
 
+chatRouter.get('/history', chatController.chatHistory);
+
 export default chatRouter;

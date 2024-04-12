@@ -172,6 +172,43 @@ const chatService = {
             };
         }
     },
+
+    chatHistory: async (id, number) => {
+        try {
+            const doc = firestore.collection(id).doc(number);
+            const snapshot = await doc.get();
+
+            if (snapshot.exists) {
+                return {
+                    timestamp: new Date(Date.now()),
+                    result: true,
+                    status: 200,
+                    message: 'Success',
+                    data: {
+                        chat: snapshot.data().chat,
+                        update_at: snapshot.data().update_at.toDate(),
+                    },
+                };
+            } else {
+                return {
+                    timestamp: new Date(Date.now()),
+                    result: false,
+                    status: 400,
+                    message: 'no chatting room',
+                    data: null,
+                };
+            }
+        } catch (error) {
+            console.log(error);
+            return {
+                timestamp: new Date(Date.now()),
+                result: false,
+                status: 400,
+                message: error,
+                data: null,
+            };
+        }
+    },
 };
 
 export default chatService;
