@@ -9,4 +9,6 @@ chatRouter.post('/create', chatController.createChat);
 
 chatRouter.post('/delete', chatController.deleteChat);
 
+chatRouter.post('/question', chatController.question);
+
 export default chatRouter;
