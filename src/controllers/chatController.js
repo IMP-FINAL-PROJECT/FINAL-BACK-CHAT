@@ -21,6 +21,11 @@ const chatController = {
         return res.json(response);
     },
 
+    botUtterance: async (req, res) => {
+        const response = await chatService.botUtterance(req.body);
+        return res.json(response);
+    },
+
     chatHistory: async (req, res) => {
         const response = await chatService.chatHistory(req.query.id, req.query.number);
         return res.json(response);

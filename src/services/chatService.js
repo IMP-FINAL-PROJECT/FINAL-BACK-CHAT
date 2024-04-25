@@ -1,4 +1,5 @@
 import { firestore } from '../config/firebase_config.js';
+import admin from 'firebase-admin';
 
 const chatService = {
     getChatList: async (id) => {
@@ -64,7 +65,9 @@ const chatService = {
                 result: true,
                 status: 200,
                 message: 'Success',
-                data: null,
+                data: {
+                    create_number: name,
+                },
             };
         } catch (error) {
             console.log(error);
@@ -130,28 +133,28 @@ const chatService = {
                     data: null,
                 };
             } else {
-                // 서버 접속 후 request
-                const response = await fetch(process.env.FLASK_IP, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(body),
-                });
+                try {
+                    // 서버 접속 후 request
+                    const response = await fetch(process.env.FLASK_IP, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(body),
+                    });
 
-                if (!response.ok) {
+                    const flaskResponse = await response.json();
+
+                    await doc.update({
+                        chat: admin.firestore.FieldValue.arrayUnion({
+                            request: body.request,
+                            response: flaskResponse,
+                        }),
+                        update_at: admin.firestore.FieldValue.serverTimestamp(),
+                    });
+                } catch (error) {
                     throw new Error('FLASK 응답 오류');
                 }
-
-                const flaskResponse = await response.json();
-
-                await doc.update({
-                    chat: admin.firestore.FieldValue.arrayUnion({
-                        request: body.request,
-                        response: flaskResponse,
-                    }),
-                    update_at: admin.firestore.FieldValue.serverTimestamp(),
-                });
             }
 
             return {
@@ -159,7 +162,50 @@ const chatService = {
                 result: true,
                 status: 200,
                 message: 'Success',
+                data: {
+                    request: body.request,
+                    response: flaskResponse,
+                },
+            };
+        } catch (error) {
+            console.log(error);
+            return {
+                timestamp: new Date(Date.now()),
+                result: false,
+                status: 400,
+                message: error,
                 data: null,
+            };
+        }
+    },
+
+    botUtterance: async (body) => {
+        try {
+            const doc = firestore.collection(body.id).doc('0');
+            const snapshot = await doc.get();
+
+            if (!snapshot.exists) {
+                await doc.set({
+                    chat: [],
+                    update_at: new Date(Date.now()),
+                });
+            }
+
+            await doc.update({
+                chat: admin.firestore.FieldValue.arrayUnion({
+                    response: body.response,
+                }),
+                update_at: admin.firestore.FieldValue.serverTimestamp(),
+            });
+
+            return {
+                timestamp: new Date(Date.now()),
+                result: true,
+                status: 200,
+                message: 'Success',
+                data: {
+                    response: body.response,
+                },
             };
         } catch (error) {
             console.log(error);
