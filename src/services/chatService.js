@@ -10,12 +10,15 @@ const chatService = {
             let map = new Map();
 
             snapshot.docs.forEach((doc) => {
-                map.set(doc.id, doc.data().update_at.toDate());
+                map.set(doc.id, {
+                    update_at: doc.data().update_at.toDate(),
+                    name: doc.data().name,
+                });
             });
 
-            const chatList = Array.from(map).map(([number, update_at]) => ({
+            const chatList = Array.from(map).map(([number, chat_info]) => ({
                 number: number,
-                update_at: update_at,
+                chat_info: chat_info,
             }));
 
             return {
