@@ -56,6 +56,7 @@ const chatService = {
 
             // 문서 추가
             await check.doc(name).set({
+                name: '착하지만 바보 같은 동욱봇 ' + name,
                 chat: [],
                 update_at: new Date(Date.now()),
             });
@@ -66,7 +67,7 @@ const chatService = {
                 status: 200,
                 message: 'Success',
                 data: {
-                    create_number: name,
+                    number: name,
                 },
             };
         } catch (error) {
@@ -95,7 +96,7 @@ const chatService = {
                     status: 200,
                     message: 'Success',
                     data: {
-                        delete_number: body.number,
+                        number: body.number,
                     },
                 };
             } else {
@@ -186,6 +187,7 @@ const chatService = {
 
             if (!snapshot.exists) {
                 await doc.set({
+                    name: '선발화 동욱봇',
                     chat: [],
                     update_at: new Date(Date.now()),
                 });
