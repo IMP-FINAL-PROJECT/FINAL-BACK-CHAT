@@ -1,5 +1,6 @@
 import { firestore } from '../config/firebase_config.js';
 import admin from 'firebase-admin';
+import user from '../../database/user.js';
 
 const chatService = {
     getChatList: async (id) => {
@@ -39,21 +40,48 @@ const chatService = {
 
     createChat: async (body) => {
         try {
-            const check = firestore.collection(body.id);
-            const snapshot = await check.get();
+            const userCheck = await user.findById(body.id);
 
-            let name;
+            if (userCheck != null) {
+                const check = firestore.collection(body.id);
+                const snapshot = await check.get();
 
-            if (snapshot.empty) {
-                console.log('empty');
+                let name;
 
-                name = '1';
+                if (snapshot.empty) {
+                    console.log('empty');
+
+                    name = '1';
+                } else {
+                    const lastDocument = snapshot.docs[snapshot.docs.length - 1].id;
+                    const lastDocumentNumber = parseInt(lastDocument);
+                    name = (lastDocumentNumber + 1).toString();
+                }
+
+                // 문서 추가
+                await check.doc(name).set({
+                    chat: [],
+                    update_at: new Date(Date.now()),
+                });
+
+                return {
+                    timestamp: new Date(Date.now()),
+                    result: true,
+                    status: 200,
+                    message: 'Success',
+                    data: {
+                        number: name,
+                    },
+                };
             } else {
-                const lastDocument = snapshot.docs[snapshot.docs.length - 1].id;
-                const lastDocumentNumber = parseInt(lastDocument);
-                name = (lastDocumentNumber + 1).toString();
+                return {
+                    timestamp: new Date(Date.now()),
+                    result: false,
+                    status: 400,
+                    message: 'No User',
+                    data: null,
+                };
             }
-
             // 문서 추가
             await check.doc(name).set({
                 name: '착하지만 바보 같은 동욱봇 ' + name,
