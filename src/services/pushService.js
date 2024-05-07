@@ -1,47 +1,41 @@
+import { firestore } from '../config/firebase_config.js';
 import admin from 'firebase-admin';
 import user from '../../database/user.js';
 
 const pushService = {
-    notification: async (body) => {
+    notification: async () => {
         try {
-            const userToken = await user.findTokenById(body.id);
+            const snapshot = await firestore.collection('fcm_notification_push').get();
 
-            if (userToken != null) {
-                let message = {
-                    notification: {
-                        title: 'Fluffy_mood',
-                        body: '안녕하세요?',
-                    },
-                    token: userToken.token,
-                };
+            for (const doc of snapshot.docs) {
+                const data = doc.data();
 
-                await admin.messaging().send(message);
+                console.log(data);
 
-                return {
-                    timestamp: new Date(Date.now()),
-                    result: true,
-                    status: 200,
-                    message: 'Success',
-                    data: null,
-                };
-            } else {
-                return {
-                    timestamp: new Date(Date.now()),
-                    result: false,
-                    status: 400,
-                    message: 'No Token',
-                    data: null,
-                };
+                const userToken = await user.findTokenById(doc.id);
+
+                if (userToken != null) {
+                    if (data.update_at > data.last_update + 60000) {
+                        const payload = {
+                            notification: {
+                                title: data.title,
+                                body: data.body,
+                            },
+                            token: userToken,
+                        };
+
+                        await doc.ref.update({
+                            last_update: data.update_at,
+                            update_at: new Date(Date.now()),
+                        });
+
+                        // 각 조건을 만족하는 문서마다 알림을 보냅니다.
+                        await admin.messaging().send(payload);
+                    }
+                }
             }
         } catch (error) {
-            console.log(error);
-            return {
-                timestamp: new Date(Date.now()),
-                result: false,
-                status: 400,
-                message: error,
-                data: null,
-            };
+            console.log('Error : ', error);
         }
     },
 };

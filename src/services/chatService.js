@@ -68,6 +68,22 @@ const chatService = {
                     update_at: new Date(Date.now()),
                 });
 
+                const notificationCollection = firestore.collection('fcm_notification_push');
+                const notificationDocument = notificationCollection.doc(body.id);
+
+                const test = await notificationDocument.get();
+
+                if (!test.exists) {
+                    const date = new Date(Date.now());
+
+                    await notificationDocument.set({
+                        title: '새로운 알림이 도착했습니다!',
+                        body: '얼른 확인해보세요!',
+                        update_at: date,
+                        last_update: date,
+                    });
+                }
+
                 return {
                     timestamp: new Date(Date.now()),
                     result: true,
@@ -166,8 +182,17 @@ const chatService = {
                         chat: admin.firestore.FieldValue.arrayUnion({
                             request: body.request,
                             response: flaskResponse,
+                            chat_time: new Date(Date.now()),
                         }),
                         update_at: admin.firestore.FieldValue.serverTimestamp(),
+                    });
+
+                    const timeDoc = firestore.collection('fcm_notification_push').doc(body.id);
+
+                    const timeDocData = await timeDoc.get();
+
+                    await timeDocData.ref.update({
+                        update_at: new Date(Date.now()),
                     });
                 } catch (error) {
                     throw new Error('FLASK 응답 오류');
@@ -182,6 +207,7 @@ const chatService = {
                 data: {
                     request: body.request,
                     response: flaskResponse,
+                    chat_time: new Date(Date.now()),
                 },
             };
         } catch (error) {
@@ -205,15 +231,24 @@ const chatService = {
                 await doc.set({
                     name: '선발화 동욱봇',
                     chat: [],
-                    update_at: new Date(Date.now()),
+                    chat_time: new Date(Date.now()),
                 });
             }
 
             await doc.update({
                 chat: admin.firestore.FieldValue.arrayUnion({
                     response: body.response,
+                    chat_time: new Date(Date.now()),
                 }),
                 update_at: admin.firestore.FieldValue.serverTimestamp(),
+            });
+
+            const timeDoc = firestore.collection('fcm_notification_push').doc(body.id);
+
+            const timeDocData = await timeDoc.get();
+
+            await timeDocData.ref.update({
+                update_at: new Date(Date.now()),
             });
 
             return {
@@ -223,6 +258,7 @@ const chatService = {
                 message: 'Success',
                 data: {
                     response: body.response,
+                    chat_time: new Date(Date.now()),
                 },
             };
         } catch (error) {
@@ -243,13 +279,18 @@ const chatService = {
             const snapshot = await doc.get();
 
             if (snapshot.exists) {
+                const chatData = snapshot.data().chat.map((chat) => ({
+                    response: chat.response,
+                    chat_time: chat.chat_time.toDate(), // Timestamp를 Date로 변환
+                }));
+
                 return {
                     timestamp: new Date(Date.now()),
                     result: true,
                     status: 200,
                     message: 'Success',
                     data: {
-                        chat: snapshot.data().chat,
+                        chat: chatData,
                         update_at: snapshot.data().update_at.toDate(),
                     },
                 };

@@ -2,7 +2,7 @@ import chatService from '../services/chatService.js';
 
 const chatController = {
     getChatList: async (req, res) => {
-        const response = await chatService.getChatList(req.body.id);
+        const response = await chatService.getChatList(req.query.id);
         return res.json(response);
     },
 
