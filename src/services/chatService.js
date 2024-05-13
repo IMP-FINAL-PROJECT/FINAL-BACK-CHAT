@@ -11,9 +11,12 @@ const chatService = {
             let map = new Map();
 
             snapshot.docs.forEach((doc) => {
+                const lastChat = doc.data().chat[doc.data().chat.length - 1];
+
                 map.set(doc.id, {
                     update_at: doc.data().update_at.toDate(),
                     name: doc.data().name,
+                    last_chat: lastChat ? lastChat.response : null,
                 });
             });
 
