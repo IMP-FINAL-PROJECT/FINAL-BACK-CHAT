@@ -255,7 +255,7 @@ const chatService = {
             if (snapshot.exists) {
                 const chatData = snapshot.data().chat.map((chat) => ({
                     response: chat.response,
-                    chat_time: chat.chat_time.toDate(), // Timestamp를 Date로 변환
+                    date: chat.date.toDate(), // Timestamp를 Date로 변환
                 }));
 
                 return {
