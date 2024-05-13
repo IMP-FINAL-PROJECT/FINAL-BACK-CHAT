@@ -5,8 +5,6 @@ import bodyParser from 'body-parser';
 import morgan from 'morgan';
 import chatRouter from './routes/chatRouter.js';
 import pushRouter from './routes/pushRouter.js';
-import cron from 'node-cron';
-import pushService from './services/pushService.js';
 
 const app = express();
 const __dirname = path.resolve();
@@ -21,16 +19,6 @@ app.use(cors());
 
 app.use('/chat', chatRouter);
 app.use('/push', pushRouter);
-
-cron.schedule('*/5 * * * *', async () => {
-    console.log('notification start');
-    try {
-        await pushService.notification();
-        console.log('notification finish');
-    } catch (error) {
-        console.error('An error occurred during notification processing', error);
-    }
-});
 
 app.listen(app.get('port'), () => {
     console.log('Server Connect');

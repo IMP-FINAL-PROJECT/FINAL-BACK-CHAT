@@ -49,40 +49,26 @@ const chatService = {
                 const check = firestore.collection(body.id);
                 const snapshot = await check.get();
 
-                let name;
+                let name = '착하지만 바보 같은 동욱봇 ';
+                let number;
+                const update_at = new Date(Date.now());
 
                 if (snapshot.empty) {
                     console.log('empty');
 
-                    name = '1';
+                    number = '1';
                 } else {
                     const lastDocument = snapshot.docs[snapshot.docs.length - 1].id;
                     const lastDocumentNumber = parseInt(lastDocument);
-                    name = (lastDocumentNumber + 1).toString();
+                    number = (lastDocumentNumber + 1).toString();
                 }
 
                 // 문서 추가
-                await check.doc(name).set({
-                    name: '착하지만 바보 같은 동욱봇 ' + name,
+                await check.doc(number).set({
+                    name: name + number,
                     chat: [],
-                    update_at: new Date(Date.now()),
+                    update_at: update_at,
                 });
-
-                const notificationCollection = firestore.collection('fcm_notification_push');
-                const notificationDocument = notificationCollection.doc(body.id);
-
-                const test = await notificationDocument.get();
-
-                if (!test.exists) {
-                    const date = new Date(Date.now());
-
-                    await notificationDocument.set({
-                        title: '새로운 알림이 도착했습니다!',
-                        body: '얼른 확인해보세요!',
-                        update_at: date,
-                        last_update: date,
-                    });
-                }
 
                 return {
                     timestamp: new Date(Date.now()),
@@ -90,7 +76,11 @@ const chatService = {
                     status: 200,
                     message: 'Success',
                     data: {
-                        number: name,
+                        number: number,
+                        chat_info: {
+                            name: name + number,
+                            update_at: update_at,
+                        },
                     },
                 };
             } else {
@@ -186,14 +176,6 @@ const chatService = {
                         }),
                         update_at: admin.firestore.FieldValue.serverTimestamp(),
                     });
-
-                    const timeDoc = firestore.collection('fcm_notification_push').doc(body.id);
-
-                    const timeDocData = await timeDoc.get();
-
-                    await timeDocData.ref.update({
-                        update_at: new Date(Date.now()),
-                    });
                 } catch (error) {
                     throw new Error('FLASK 응답 오류');
                 }
@@ -241,14 +223,6 @@ const chatService = {
                     chat_time: new Date(Date.now()),
                 }),
                 update_at: admin.firestore.FieldValue.serverTimestamp(),
-            });
-
-            const timeDoc = firestore.collection('fcm_notification_push').doc(body.id);
-
-            const timeDocData = await timeDoc.get();
-
-            await timeDocData.ref.update({
-                update_at: new Date(Date.now()),
             });
 
             return {
