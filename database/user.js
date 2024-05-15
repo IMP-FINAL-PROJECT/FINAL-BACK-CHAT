@@ -10,6 +10,10 @@ const user = {
         const user = await User.findOne({ where: { id: `${id}` }, raw: true });
         return user;
     },
+    findAll : async () => {
+        const user = await User.findAll({attributes : ['id', 'token'],  raw : true});
+        return user;
+    }
 };
 
 export default user;

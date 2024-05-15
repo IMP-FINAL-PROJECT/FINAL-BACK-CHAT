@@ -150,6 +150,8 @@ const chatService = {
             const doc = firestore.collection(body.id).doc(body.number);
             const snapshot = await doc.get();
 
+            let flaskResponse;
+
             if (!snapshot.exists) {
                 return {
                     timestamp: new Date(Date.now()),
@@ -169,7 +171,7 @@ const chatService = {
                         body: JSON.stringify(body),
                     });
 
-                    const flaskResponse = await response.json();
+                    flaskResponse = await response.json();
 
                     await doc.update({
                         chat: admin.firestore.FieldValue.arrayUnion({
@@ -258,7 +260,7 @@ const chatService = {
             if (snapshot.exists) {
                 const chatData = snapshot.data().chat.map((chat) => ({
                     response: chat.response,
-                    date: chat.date.toDate(), // Timestamp를 Date로 변환
+                    chat_time: chat.chat_time.toDate(), // Timestamp를 Date로 변환
                 }));
 
                 return {
