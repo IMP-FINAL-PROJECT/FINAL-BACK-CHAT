@@ -3,8 +3,10 @@ import path from 'path';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
+import cron from 'node-cron';
 import chatRouter from './routes/chatRouter.js';
-import pushRouter from './routes/pushRouter.js';
+import pushService from './services/pushService.js';
+//import pushRouter from './routes/pushRouter.js';
 
 const app = express();
 const __dirname = path.resolve();
@@ -18,7 +20,19 @@ app.use(bodyParser.urlencoded({ extended: true })); //extended 는 중첩된 객
 app.use(cors());
 
 app.use('/chat', chatRouter);
-app.use('/push', pushRouter);
+//app.use('/push', pushRouter);
+
+// 매주 토요일 13시 30분 실행
+cron.schedule('30 13 * * 6', async () => {
+    try {
+        console.log('notification start');
+        await pushService.notification();
+        console.log('notification finish');
+    } catch (error) {
+        console.error('error : ', error);
+    }
+    
+})
 
 app.listen(app.get('port'), () => {
     console.log('Server Connect');

@@ -5,34 +5,39 @@ import user from '../../database/user.js';
 const pushService = {
     notification: async () => {
         try {
-            const snapshot = await firestore.collection('fcm_notification_push').get();
 
-            for (const doc of snapshot.docs) {
-                const data = doc.data();
+            const users = await user.findAll();
 
-                console.log(data);
+            for(const key of users) {
+                const snapshot = await firestore.collection(`${key.id}`).doc('0').get();
+    
+                    console.log(snapshot.data());
 
-                const userToken = await user.findTokenById(doc.id);
+                    const data = snapshot.data();
+       
+                    if (key.token != null && data != undefined) {
 
-                if (userToken != null) {
-                    if (data.update_at > data.last_update + 60000) {
-                        const payload = {
-                            notification: {
-                                title: data.title,
-                                body: data.body,
-                            },
-                            token: userToken,
-                        };
+                        try {
+                            const payload = {
+                                notification: {
+                                    title: "Fluffy_mood",
+                                    body: data.chat[data.chat.length - 1].response,
+                                },
+                                token: key.token,
+                            };
+    
+                            await snapshot.ref.update({
+                                update_at: new Date(Date.now()),
+                            });
+    
+                            // 각 조건을 만족하는 문서마다 알림을 보냅니다.
+                            await admin.messaging().send(payload);
+                        
+                        } catch (error) {
+                            continue;
+                        }
+            }
 
-                        await doc.ref.update({
-                            last_update: data.update_at,
-                            update_at: new Date(Date.now()),
-                        });
-
-                        // 각 조건을 만족하는 문서마다 알림을 보냅니다.
-                        await admin.messaging().send(payload);
-                    }
-                }
             }
         } catch (error) {
             console.log('Error : ', error);
